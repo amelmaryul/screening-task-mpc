@@ -89,7 +89,7 @@ router.post('/', requireAdmin,  async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: "Failed to retrieve student"
+            message: "Failed to create student"
         })
     }
 })
@@ -98,77 +98,35 @@ router.post('/', requireAdmin,  async (req, res) => {
 // for now this can only really change either password or name
 router.put('/:id', requireAdmin, async (req, res) => {
     try {
-        const {name, password} = req.body
+        const {name, password, role} = req.body
         const id = req.params.id
-        var hashedPassword = ""
-        if (password){
-            hashedPassword = await bcrypt.hash(password, 10)
-        }
-        if (name && password){
-            const sqlQuery = `
-            UPDATE students
-            SET name = $1, password = $2
-            WHERE id = $3
-            RETURNING id, name, role
-            `
-            const result = await pool.query(sqlQuery, [name, hashedPassword, id])
-            if (result.rowCount === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: `Student with id ${id} does not exist`
-                });
-            }
-            return res.json({
-                success: true,
-                student: result.rows[0]
-            })
-        }
-        else if (name){
-            const sqlQuery = `
-            UPDATE students
-            SET name = $1
-            WHERE id = $2
-            RETURNING id, name, role
-            `
-            const result = await pool.query(sqlQuery, [name, id])
-            if (result.rowCount === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: `Student with id ${id} does not exist`
-                });
-            }
-            return res.json({
-                success: true,
-                student: result.rows[0]
-            })
 
-        }
-
-        else if (password){
-            const sqlQuery = `
-            UPDATE students
-            SET password = $1
-            WHERE id = $2
-            RETURNING id, name, role
-            `
-            const result = await pool.query(sqlQuery, [hashedPassword, id])
-            if (result.rowCount === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: `Student with id ${id} does not exist`
-                });
-            }
-            return res.json({
-                success: true,
-                student: result.rows[0]
+        if (!name || !password || !role){
+            return res.status(400).json({
+                success: false,
+                message: "You must include name, password and role"
             })
         }
 
-        return res.status(400).json({
-            success: false,
-            message: "You can edit the students name or password!"
+        const hashedPassword = await bcrypt.hash(password, 10)
+
+        const sqlQuery = `
+        UPDATE students
+        SET name = $1, password = $2, role = $3
+        WHERE id = $4
+        RETURNING id, name, role
+        `
+        const result = await pool.query(sqlQuery, [name, hashedPassword, role, id])
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: `Student with id ${id} does not exist`
+            });
+        }
+        res.json({
+            success: true,
+            student: result.rows[0]
         })
-
 
     } catch (error) {
         res.status(500).json({
