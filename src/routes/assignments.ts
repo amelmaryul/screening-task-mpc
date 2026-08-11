@@ -8,7 +8,7 @@ const router = express.Router()
 
 router.get('/', authenticate, async (req, res) => {
     try {
-        const {name, course_id} = req.query
+        const {name, course_id, search} = req.query
 
         const paramQueries = []
         const whereCondiitons = []
@@ -23,12 +23,18 @@ router.get('/', authenticate, async (req, res) => {
             whereCondiitons.push(`course_id = $${paramQueries.length}`)
         }
 
+        if (search !== undefined) {
+            paramQueries.push(`%${search}%`);
+            whereCondiitons.push(`name ILIKE $${paramQueries.length}`);
+        }
+
         var sqlQuery = `
         SELECT id, name, course_id
         FROM assignments`
         if (paramQueries.length > 0){
             sqlQuery += ` WHERE ` + whereCondiitons.join(' AND ')
         }
+
 
         
         const result = await pool.query(sqlQuery, paramQueries)

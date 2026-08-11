@@ -11,15 +11,26 @@ const router = express.Router()
 router.get('/', authenticate, async (req, res) => {
 
     try {
-        const {name} = req.query
-        const sqlQuery = name ? 
+        const {name, search} = req.query
+        var sqlQuery = name ? 
         `SELECT id, name
         FROM courses
         WHERE name = $1` :
         `SELECT id, name
         FROM courses`
 
+        if (name && search){
+            sqlQuery += ` AND name ILIKE $2`
+        }
+        else if (search){
+            sqlQuery += `WHERE name ILIKE $1`
+        }
+
+
         const paramQueries = name ? [name] : []
+        if (search){
+            paramQueries.push(`%${search}%`);
+        }
 
 
         const result = await pool.query(sqlQuery, paramQueries)

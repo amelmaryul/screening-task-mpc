@@ -10,7 +10,7 @@ const router = express.Router()
 router.get('/', async (req, res) => {
     // everyone can check 
     try {
-        const {name, role} = req.query
+        const {name, role, search} = req.query
 
         const paramQueries = []
         const whereCondiitons = []
@@ -23,6 +23,11 @@ router.get('/', async (req, res) => {
         if (role !== undefined){
             paramQueries.push(role)
             whereCondiitons.push(`role = $${paramQueries.length}`)
+        }
+
+        if (search !== undefined) {
+            paramQueries.push(`%${search}%`);
+            whereCondiitons.push(`name ILIKE $${paramQueries.length}`);
         }
 
         var sqlQuery = `
