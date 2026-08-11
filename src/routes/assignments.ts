@@ -8,11 +8,30 @@ const router = express.Router()
 
 router.get('/', authenticate, async (req, res) => {
     try {
-        const sqlQuery = `
+        const {name, course_id} = req.query
+
+        const paramQueries = []
+        const whereCondiitons = []
+
+        if (name !== undefined){
+            paramQueries.push(name)
+            whereCondiitons.push(`name = $${paramQueries.length}`)
+        }
+
+        if (course_id !== undefined){
+            paramQueries.push(course_id)
+            whereCondiitons.push(`course_id = $${paramQueries.length}`)
+        }
+
+        var sqlQuery = `
         SELECT id, name, course_id
-        FROM assignments
-        `
-        const result = await pool.query(sqlQuery)
+        FROM assignments`
+        if (paramQueries.length > 0){
+            sqlQuery += ` WHERE ` + whereCondiitons.join(' AND ')
+        }
+
+        
+        const result = await pool.query(sqlQuery, paramQueries)
 
         res.json({
             success: true,

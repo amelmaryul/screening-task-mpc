@@ -10,11 +10,29 @@ const router = express.Router()
 router.get('/', async (req, res) => {
     // everyone can check 
     try {
-        const sqlQuery = `
-        SELECT name, role
-        FROM students
-        `
-        const resutl =  await pool.query(sqlQuery)
+        const {name, role} = req.query
+
+        const paramQueries = []
+        const whereCondiitons = []
+
+        if (name !== undefined){
+            paramQueries.push(name)
+            whereCondiitons.push(`name = $${paramQueries.length}`)
+        }
+
+        if (role !== undefined){
+            paramQueries.push(role)
+            whereCondiitons.push(`role = $${paramQueries.length}`)
+        }
+
+        var sqlQuery = `
+        SELECT id, name, role
+        FROM students`
+        if (paramQueries.length > 0){
+            sqlQuery += ` WHERE ` + whereCondiitons.join(' AND ')
+        }
+
+        const resutl =  await pool.query(sqlQuery, paramQueries)
 
 
         res.json({

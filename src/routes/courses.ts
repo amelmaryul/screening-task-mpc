@@ -11,11 +11,18 @@ const router = express.Router()
 router.get('/', authenticate, async (req, res) => {
 
     try {
-        const sqlQuery = `
-        SELECT id, name
+        const {name} = req.query
+        const sqlQuery = name ? 
+        `SELECT id, name
         FROM courses
-        `
-        const result = await pool.query(sqlQuery)
+        WHERE name = $1` :
+        `SELECT id, name
+        FROM courses`
+
+        const paramQueries = name ? [name] : []
+
+
+        const result = await pool.query(sqlQuery, paramQueries)
 
         res.json({
             success: true,
