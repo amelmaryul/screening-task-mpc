@@ -16,13 +16,6 @@ router.get('/', async (req, res) => {
         `
         const resutl =  await pool.query(sqlQuery)
 
-        if (resutl.rowCount === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "No students"
-            });
-        }
-
 
         res.json({
             success: true,
@@ -71,6 +64,20 @@ router.get('/:id', async (req, res) => {
 router.post('/', requireAdmin,  async (req, res) => {
     try {
         const {name,  password, role} = req.body
+        var isValid = true
+
+        // validation
+        if (typeof password !== "string" || password.length < 5) isValid = false // password should consistent of at least 5 characters
+        if (typeof name !== "string" || name.trim() === "") isValid = false
+        if (role !== "student" && role !== "admin") isValid = false
+
+        if (!isValid){
+            return res.status(400).json({
+                success: false,
+                message: "Passwords must be a string containing 5 or more characters. Role must be a student or an admin. Name must be a non empty string"
+            })
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10)
 
         const sqlQuery = `
@@ -95,7 +102,6 @@ router.post('/', requireAdmin,  async (req, res) => {
 })
 
 
-// for now this can only really change either password or name
 router.put('/:id', requireAdmin, async (req, res) => {
     try {
         const {name, password, role} = req.body
@@ -107,6 +113,20 @@ router.put('/:id', requireAdmin, async (req, res) => {
                 message: "You must include name, password and role"
             })
         }
+
+        var isValid = true
+
+        if (typeof name !== "string" || name.trim() === "") isValid = false
+        if (typeof password !== "string" || password.length < 5) isValid = false
+        if (role !== "student" && role !== "admine") isValid = false
+
+        if (!isValid){
+            return res.status(400).json({
+                success: false,
+                message: "Passwords must be a string containing 5 or more characters. Role must be a student or an admin. Name must be a non empty string"
+            })
+        }
+
 
         const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -153,7 +173,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
             });
         }
         res.json({
-            succes: true,
+            success: true,
             student: result.rows[0]
         })
         

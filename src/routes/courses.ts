@@ -17,13 +17,6 @@ router.get('/', authenticate, async (req, res) => {
         `
         const result = await pool.query(sqlQuery)
 
-        if (result.rowCount === 0){
-            return res.status(404).json({
-                success: false,
-                message: "No courses"
-            });
-        }
-
         res.json({
             success: true,
             courses: result.rows
@@ -80,6 +73,15 @@ router.post('/', requireAdmin, async (req, res) => {
         VALUES ($1)
         RETURNING id, name
         `
+        // validation
+        if (typeof name !== "string" || name.trim() === ""){
+            return res.status(400).json({
+                success: false,
+                message: "Name is required and must be a non empty string"
+            })
+        }
+
+
         const result = await pool.query(sqlQuery, [name])
 
         res.json({
