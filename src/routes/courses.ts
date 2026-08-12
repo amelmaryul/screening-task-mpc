@@ -23,7 +23,7 @@ router.get('/', authenticate, async (req, res) => {
             sqlQuery += ` AND name ILIKE $2`
         }
         else if (search){
-            sqlQuery += `WHERE name ILIKE $1`
+            sqlQuery += ` WHERE name ILIKE $1`
         }
 
 
