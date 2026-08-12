@@ -5,6 +5,7 @@ import studentRoute from "./routes/students"
 import courseRoute from "./routes/courses"
 import assignmentRouter from "./routes/assignments"
 
+const PORT = Number(process.env.PORT) || 3000
 
 const app = express();
 
@@ -25,6 +26,6 @@ app.get("/status", (req, res) => {
     });
 });
 
-app.listen(3000, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log("Server running on http://localhost:3000");
 });

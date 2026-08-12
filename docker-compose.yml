@@ -1,0 +1,31 @@
+services:
+
+  database:
+    image: postgres:16
+    container_name: mpc_db
+    restart: always
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+  backend:
+    build: .
+    container_name: mpc_express
+    ports:
+    - "3000:3000"
+    env_file:
+      - .env
+    command: sh -c "npm run db:setup && npm run start"
+
+    depends_on:
+      - database
+
+
+volumes:
+  pgdata :
