@@ -123,6 +123,22 @@ Response `200`:
 { "success": true, "student": { "id": 2, "name": "testuser", "role": "student" } }
 ```
 
+## Live Deployment
+
+Live API: https://screening-task-mpc-production.up.railway.app/api
+
+The application is deployed on Railway and can be tested against the live API.
+
+For development/testing purposes, `POST /api/auth/signup` is enabled. Ideally in a production environment, this endpoint would be removed to prevent users from assigning themselves the `admin` role.
+
+To simulate a normal use case, an existing admin account is available:
+
+```json
+{
+  "name": "malek",
+  "password": "malek1"
+}
+```
 
 
 
@@ -135,3 +151,21 @@ Response `200`:
 - The api/auth/signup end point was provided for testing only. Ideally, the database should have admin already and only admins can create student entries.
  - PATCH on assignments only updates fields explicitly provided in the request body
 - PUT on students requires the full object and replaces all fields.
+
+
+## Product Improvement Challenge
+#### Caching read heavy endpoints
+- **Why it matters**: get endpoints will most likely be used far more then other requests. At 50,000 students browsing a website and triggering get requests can be costly. 
+- **Implementation**: Cache data using Redis. When a request is received, the API would check Redis for cached data. If there is data and it has not yet expired, return the cached data otherwise query the database and return the queried data.
+- **Tradeoff**: Cached data can become stale and not up to date. It also introduces another layer of complexity
+
+
+#### Rate Limiting on login requests
+- **Why it matters**: With implementing authentication we should keep the backend safe from malicious activity. Currently, users could span the login requests checking an infinite amount of password combinations. This introduces the risk of information getting leaked or corrupted. 
+- **Implementation**: Use Redis to track failed log in attempts per IP address. Ban IP addresses with 5 failed attempts in 10 minutes. 
+- **Tradeoff**: This introduces the risk of potentially banning a user that simply forgot their credentials
+
+#### Exposing the student course end points
+- **Why it matters**: Currently students and courses have a relationship that is not represented in the API lists. Users may want to see what courses they have assigned to them.
+- **Implementation**: Create a new endpoint for student-courses relation ship: POST /api/courses/:courseId/students/:studentId enrolls a student to a course
+- **Tradeoff**: Introduces another layer of complexity and generates more surface area to secure and validate.
